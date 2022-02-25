@@ -1,16 +1,86 @@
 package `in`.kyle.chess
 
+import `in`.kyle.chess.bitboard.bitboard
+import `in`.kyle.chess.bitboard.shouldBeBitboard
+import `in`.kyle.chess.model.Square
 import `in`.kyle.chess.reference.testSameMovesAsReference
+import `in`.kyle.chess.debug.Fen
 import io.kotest.core.spec.style.StringSpec
 
 class TestPawn : StringSpec({
 
-    "test pawn moves forward 1 square" {
-        testSameMovesAsReference("8/1k6/8/8/8/1P6/6K1/8 w - - 0 1")
+    "black - test single pawn attack mask" {
+        val board = Fen.toBoard("8/8/8/4p3/8/8/8/8 w - - 0 1")
+        val attacks = board.bPawnAttacks()
+
+        val expected = bitboard {
+            add(Square.D4, Square.F4)
+        }
+
+        attacks shouldBeBitboard expected
+    }
+
+    "black - test single pawn attack mask in right corner" {
+        val board = Fen.toBoard("7p/8/8/8/8/8/8/8 w - - 0 1")
+        val attacks = board.bPawnAttacks()
+
+        val expected = bitboard {
+            add(Square.G7)
+        }
+
+        attacks shouldBeBitboard expected
+    }
+
+    "black - test single pawn attack mask in left corner" {
+        val board = Fen.toBoard("p7/8/8/8/8/8/8/8 w - - 0 1")
+        val attacks = board.bPawnAttacks()
+
+        val expected = bitboard {
+            add(Square.B7)
+        }
+
+        attacks shouldBeBitboard expected
+    }
+
+    "white - test single pawn attack mask" {
+        val board = Fen.toBoard("8/8/8/8/8/2P5/8/8 w - - 0 1")
+        val attacks = board.wPawnAttacks()
+
+        val expected = bitboard {
+            add(Square.B4, Square.D4)
+        }
+
+        attacks shouldBeBitboard expected
+    }
+
+    "white - test single pawn attack mask in right corner" {
+        val board = Fen.toBoard("8/8/8/8/8/8/8/7P w - - 0 1")
+        val attacks = board.wPawnAttacks()
+
+        val expected = bitboard {
+            add(Square.G2)
+        }
+
+        attacks shouldBeBitboard expected
+    }
+
+    "white - test single pawn attack mask in left corner" {
+        val board = Fen.toBoard("8/8/8/8/8/8/8/P7 w - - 0 1")
+        val attacks = board.wPawnAttacks()
+
+        val expected = bitboard {
+            add(Square.B2)
+        }
+
+        attacks shouldBeBitboard expected
     }
 
     "test double pawn push on 2nd rank" {
         testSameMovesAsReference("8/1k6/8/8/8/8/1P4K1/8 w - - 0 1")
+    }
+
+    "test single push" {
+        testSameMovesAsReference("8/1k6/8/8/8/1P6/6K1/8 w - - 0 1")
     }
 
     "test black double pawn push on 7th rank" {
@@ -25,20 +95,12 @@ class TestPawn : StringSpec({
         testSameMovesAsReference("8/1k6/8/8/3p4/2P5/6K1/8 w - - 0 1")
     }
 
-    "test pawn cannot capture if pinned" {
-        testSameMovesAsReference("8/1kr5/8/8/3p4/2P5/2K5/8 w - - 0 1")
-    }
-
     "test en passant capture right" {
         testSameMovesAsReference("8/1k6/8/5Pp1/8/8/6K1/8 w - g6 0 1")
     }
 
     "test en passant capture left" {
         testSameMovesAsReference("8/1k6/8/4pP2/8/8/6K1/8 w - e6 0 1")
-    }
-
-    "test cannot en passant if pinned" {
-        testSameMovesAsReference("5r2/1k6/8/4pP2/8/8/5K2/8 w - e6 0 1")
     }
 
     "test can promote" {

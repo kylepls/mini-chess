@@ -1,59 +1,58 @@
 package `in`.kyle.chess.perft
 
 import `in`.kyle.chess.ChessBoard
-import `in`.kyle.chess.util.Fen
-import `in`.kyle.chess.reference.toReference
+import `in`.kyle.chess.debug.Fen
+import `in`.kyle.chess.model.Move
+import `in`.kyle.chess.model.getHumanMoves
+import `in`.kyle.chess.reference.ReferenceBoard
 import io.kotest.assertions.withClue
-import io.kotest.core.spec.style.StringSpec
-import io.kotest.datatest.withData
+import io.kotest.core.spec.style.FreeSpec
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import com.github.bhlangonijr.chesslib.Board as ReferenceBoard
 
-class TestPerftReference : StringSpec({
+class TestPerftReference : FreeSpec({
 
-    val inputs = (1..6).associateWith { Perft.PERFT_RESULTS[it] }
+    val inputs = (1..7).associateWith { Perft.PERFT_RESULTS[it] }
 
-    fun perftRun(board: ChessBoard, reference: ReferenceBoard, depth: Int, ply: Int): Long {
-        if (depth == 0) {
-            return 1
+    inputs.entries.map { (depth, expected) ->
+        "perft($depth) should return ${expected.nodes}" {
+            val board = Fen.toBoard(Fen.STARTING_POSITION)
+            val reference = ReferenceBoard().apply { setPosition(Fen.STARTING_POSITION) }
+
+            perftRun(board, reference, depth, 0) shouldBe expected.nodes
         }
-        var tmp = board
-        var nodes: Long = 0
-
-        val moves = tmp.getValidMoves().sortedBy { it.toString() }
-        val referenceMoves = reference.legalMoves().sortedBy { it.toString() }
-
-        withClue(lazy {
-            val sortedMoves = moves.map { it.toString().replace("-", "") }.sorted()
-            val sortedReferenceMoves = referenceMoves.map { it.toString() }
-            """
-            $board
-            board: ${Fen.toFen(tmp)}
-            my moves: $sortedMoves
-            reference moves: $sortedReferenceMoves
-            """.trimIndent()
-        }) {
-            moves.size shouldBe referenceMoves.size
-        }
-
-        for (move in moves) {
-            val copy = tmp.copy()
-            tmp.makeMove(move)
-            reference.doMove(move.toReference())
-            nodes += perftRun(tmp, reference, depth - 1, ply + 1)
-            reference.undoMove()
-            tmp = copy
-        }
-        return nodes
-    }
-
-    withData(
-        nameFn = { "perft(${it.key}) should return ${it.value.nodes}" },
-        inputs.entries
-    ) { (depth, expected) ->
-        val board = Fen.toBoard(Fen.STARTING_POSITION)
-        val reference = ReferenceBoard().apply { loadFromFen(Fen.STARTING_POSITION) }
-        val result = perftRun(board, reference, depth, 0)
-        result shouldBe expected.nodes
     }
 })
+
+fun perftRun(board: ChessBoard, reference: ReferenceBoard, depth: Int, ply: Int): Long {
+    if (depth == 0) {
+        return 1
+    }
+    var nodes: Long = 0
+
+    val humanMoves = board.getHumanMoves()
+    val moves = humanMoves.map { it.toString() }.sorted()
+    val referenceMoves = reference.getLegalMoves().sorted()
+
+    withClue(lazy {
+        """
+            $board
+            board: ${Fen.format(board)}
+            my moves: $moves
+            reference moves: $referenceMoves
+            moves made so far: ${board.moves.reversed().map { Move(it).toString() }}
+            moves bits: ${board.moves.reversed()}
+        """.trimIndent()
+    }) {
+        moves shouldContainExactly referenceMoves
+    }
+
+    for (move in humanMoves) {
+        board.makeMove(move.bits)
+        reference.makeMove(move)
+        nodes += perftRun(board, reference, depth - 1, ply + 1)
+        reference.undoMove()
+        board.undoMove()
+    }
+    return nodes
+}

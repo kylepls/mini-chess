@@ -1,27 +1,30 @@
 package `in`.kyle.chess.epd
 
+import `in`.kyle.chess.model.getHumanMoves
 import `in`.kyle.chess.reference.ReferenceBoard
-import `in`.kyle.chess.util.Fen
-import `in`.kyle.chess.reference.withMovesComparisonClue
-import io.kotest.core.spec.style.StringSpec
-import io.kotest.datatest.withData
+import `in`.kyle.chess.debug.Fen
+import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldContainExactly
 
 
-class EpdTests : StringSpec({
+class EpdTests : FreeSpec({
 
-    withData(listOf("bratko-kopec-tests.epd")) { file ->
-        withData(nameFn = { it[Epd.OperationKey.ID] }, Epd.readEpd(file) as Iterable<Epd>) { epd ->
-            val fen = epd.fen
-            val referenceBoard = ReferenceBoard().apply { setPosition(fen) }
+    listOf("bratko-kopec-tests.epd").map { fileName ->
+        fileName - {
+            Epd.readEpd(fileName).map { epd ->
+                epd[Epd.OperationKey.ID] {
+                    val fen = epd.fen
+                    val referenceBoard = ReferenceBoard().apply { setPosition(fen) }
 
-            val board = Fen.toBoard(fen)
+                    val board = Fen.toBoard(fen)
 
-            val referenceMoves = referenceBoard.getLegalMoves().sorted()
-            val myMovesSan = board.getValidMoves().map { it.toString() }.sorted()
+                    val referenceMoves = referenceBoard.getLegalMoves().sorted()
+                    val myMovesSan = board.getHumanMoves().map { it.toString() }.sorted()
 
-            withMovesComparisonClue(board, referenceBoard) {
-                myMovesSan shouldContainExactly referenceMoves
+                    // withMovesComparisonClue(board, referenceBoard) {
+                    myMovesSan shouldContainExactly referenceMoves
+                    // }
+                }
             }
         }
     }

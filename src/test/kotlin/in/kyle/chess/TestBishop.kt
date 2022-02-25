@@ -1,21 +1,16 @@
 package `in`.kyle.chess
 
 import `in`.kyle.chess.reference.testSameMovesAsReference
-import `in`.kyle.chess.util.Fen
-import io.kotest.assertions.withClue
-import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.shouldBe
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.FreeSpec
 
-class TestBishop : StringSpec({
+class TestBishop : FreeSpec({
 
-    "bishop has correct moves" {
-        testSameMovesAsReference("8/1k6/8/8/8/8/6K1/B7 w - - 0 1")
+    "test simple diagonals" {
+        testSameMovesAsReference("8/1k6/8/4B3/8/8/6K1/8 w - - 0 1")
     }
 
     "bishop can capture" {
-        testSameMovesAsReference("7r/1k4p1/8/8/8/8/6K1/B7 w - - 0 1")
+        testSameMovesAsReference("7n/1k4p1/8/8/8/8/6K1/B7 w - - 0 1")
     }
 
     "bishop can be blocked" {
