@@ -1,9 +1,7 @@
 package `in`.kyle.chess.bitboard
 
 import `in`.kyle.chess.bitscanForward
-import `in`.kyle.chess.isNotZero
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.data.blocking.forAll
 import io.kotest.matchers.ints.shouldBeExactly
 
 class TestBitboard : StringSpec({

@@ -4,9 +4,11 @@ import java.util.*
 
 const val MASK_FROM = 0x3F
 const val MASK_TO = MASK_FROM shl 6
-
 const val MASK_PIECE = 0b1111 shl 12
 const val MASK_ENCODING = 0b1111 shl 16
+const val notAFile = 0xfefefefefefefefeUL
+const val notHFile = 0x7f7f7f7f7f7f7f7fUL
+const val MAX_MOVES = 256
 
 // https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks#Squares_and_Bitindex
 val diagonalMasks8 = ulongArrayOf(
@@ -14,23 +16,16 @@ val diagonalMasks8 = ulongArrayOf(
     0x804020100000000UL, 0x402010000000000UL, 0x201000000000000UL, 0x100000000000000UL, 0x0UL,
     0x80UL, 0x8040UL, 0x804020UL, 0x80402010UL, 0x8040201008UL, 0x804020100804UL, 0x80402010080402UL
 )
-
 val antiDiagonalMasks8 = ulongArrayOf(
     0x102040810204080UL, 0x1020408102040UL, 0x10204081020UL, 0x102040810UL, 0x1020408UL,
     0x10204UL, 0x102UL, 0x1UL, 0x0UL, 0x8000000000000000UL, 0x4080000000000000UL,
     0x2040800000000000UL, 0x1020408000000000UL, 0x810204080000000UL, 0x408102040800000UL,
     0x204081020408000UL
 )
-
 val onePawnAttacks = ulongArrayOf(0x2UL, 0x5UL, 0xaUL, 0x14UL, 0x28UL, 0x50UL, 0xa0UL, 0x40UL)
-const val notAFile = 0xfefefefefefefefeUL
-const val notHFile = 0x7f7f7f7f7f7f7f7fUL
-
 val lsb64Table = Base64.getDecoder()
     .decode("Px4DIDsOCyE8GDIJNxMVIj0dAjUzFykSOBwBKy4bACM+HzoEBTE2Bg80DCgHKi0QGTkwDQonCCwULyYWESUkGg==")
     .map { it.toInt() }.toIntArray()
-
-const val MAX_MOVES = 256
 
 @OptIn(ExperimentalUnsignedTypes::class)
 class ChessBoard {
@@ -88,7 +83,7 @@ class ChessBoard {
             set(3 + color * 56, 4 + color * 6)
         }
 
-        if (++halfMoveClock % 2 != 0) fullMoveNumber++
+        fullMoveNumber += ++halfMoveClock % 2
         color = color xor 1
     }
 
@@ -161,40 +156,36 @@ class ChessBoard {
         return if (this[square] > 6) (temp shr 8) else (temp shl 8)
     }
 
-    fun wPawnAttacks() =
+    inline fun wPawnAttacks() =
         (((pieceOccupancies[1] shl 9) and notAFile) or ((pieceOccupancies[1] shl 7) and notHFile) or epMask())
 
-    fun bPawnAttacks() =
+    inline fun bPawnAttacks() =
         (((pieceOccupancies[7] shr 9) and notHFile) or ((pieceOccupancies[7] shr 7) and notAFile) or epMask())
 
-    fun epMask() = if (enPassant != 0) 1UL shl enPassant else 0UL
+    inline fun epMask() = if (enPassant != 0) 1UL shl enPassant else 0UL
 
-    fun wSinglePawnPushes() = ((pieceOccupancies[1] shl 8) and empty) shr 8
-    fun bSinglePawnPushes() = ((pieceOccupancies[7] shr 8) and empty) shl 8
+    inline fun wSinglePawnPushes() = ((pieceOccupancies[1] shl 8) and empty) shr 8
+    inline fun bSinglePawnPushes() = ((pieceOccupancies[7] shr 8) and empty) shl 8
 
-    fun wDoublePawnPushes() =
+    inline fun wDoublePawnPushes() =
         ((pieceOccupancies[1] shl 16) and (wSinglePawnPushes() shl 16) and empty and 0xFF000000UL) shr 16
 
-    fun bDoublePawnPushes() =
+    inline fun bDoublePawnPushes() =
         ((pieceOccupancies[7] shr 16) and (bSinglePawnPushes() shr 16) and empty and 0xFF00000000UL) shl 16
 
     fun getPawnMoves(): List<Int> {
         val moves = mutableListOf<Int>()
-
         val maskSinglePush = if (color == 0) wSinglePawnPushes() else bSinglePawnPushes()
         val maskDoublePush = if (color == 0) wDoublePawnPushes() else bDoublePawnPushes()
         val opposingOccupancy = colorOccupancy[color xor 1]
-
         var maskPawns = pieceOccupancies[1 + 6 * color]
         while (maskPawns != 0UL) {
             val square = bitscanForward(maskPawns)
             val pieceMask = (1UL shl square)
             maskPawns = maskPawns and pieceMask.inv()
-
             if (maskDoublePush and pieceMask != 0UL) {
                 moves.add(newMove(square, square + 16 - (32 * color), 1 + 6 * color, 1))
             }
-
             if (maskSinglePush and pieceMask != 0UL) {
                 val to = square + 8 - (16 * color)
                 if (to < 8 || to > 55) {
@@ -203,7 +194,6 @@ class ChessBoard {
                     moves.add(newMove(square, to, 1 + 6 * color, 0))
                 }
             }
-
             var pawnAttackMask = getSinglePawnAttacks(square) and (opposingOccupancy or epMask())
             while (pawnAttackMask != 0UL) {
                 val to = bitscanForward(pawnAttackMask)
@@ -216,7 +206,6 @@ class ChessBoard {
                 }
             }
         }
-
         return moves
     }
 
@@ -225,13 +214,10 @@ class ChessBoard {
 
     fun getAttackedSquares(color: Int): ULong {
         var attacks = 0UL
-
         val otherKing = pieceOccupancies[6 + (color xor 1) * 6]
         occupancy = occupancy xor otherKing // remove the king for calculation
-
         attacks = attacks or (if (color == 0) wPawnAttacks() else bPawnAttacks())
         attacks = attacks or getAllKnightAttacks(pieceOccupancies[2 + color * 6])
-
         for (i in 3..5) {
             val piece = i + color * 6
             var pieceBitboard = pieceOccupancies[piece]
@@ -252,7 +238,6 @@ class ChessBoard {
         }
 
         attacks = attacks or getKingAttacks(6 + color * 6)
-
         occupancy = occupancy or otherKing
         return attacks
     }
@@ -260,7 +245,7 @@ class ChessBoard {
     fun getMoves(): List<Int> {
         val moves = mutableListOf<Int>()
         val opposingOccupancy = colorOccupancy[color xor 1]
-        val friendlyOccupancyMaskInv = colorOccupancy[color].inv()
+        val friendlyMaskInv = colorOccupancy[color].inv()
         val attackedSquares = getAttackedSquares(color xor 1)
 
         val pieceRange = if (color == 0) 2..6 else 8..12
@@ -274,24 +259,20 @@ class ChessBoard {
 
                 val bitboardMoves = when (piece) {
                     2, 8 -> getAllKnightAttacks(pieceMask)
-                    3, 9 -> getSingleBishopAttacks(square, friendlyOccupancyMaskInv)
-                    4, 10 -> getSingleRookAttacks(square, friendlyOccupancyMaskInv)
-                    5, 11 -> getSingleBishopAttacks(
-                        square,
-                        friendlyOccupancyMaskInv
-                    ) or getSingleRookAttacks(square, friendlyOccupancyMaskInv)
+                    3, 9 -> getSingleBishopAttacks(square, friendlyMaskInv)
+                    4, 10 -> getSingleRookAttacks(square, friendlyMaskInv)
+                    5, 11 -> getSingleBishopAttacks(square, friendlyMaskInv) or
+                            getSingleRookAttacks(square, friendlyMaskInv)
                     6, 12 -> getKingAttacks(piece) and attackedSquares.inv()
                     else -> throw IllegalStateException("piece $piece is not a supported")
-                } and friendlyOccupancyMaskInv
+                } and friendlyMaskInv
 
                 var movesBitboard = bitboardMoves
                 val capturesMoves = bitboardMoves and opposingOccupancy
                 while (movesBitboard != 0UL) {
                     val destination = bitscanForward(movesBitboard)
                     val destinationMask = 1UL shl destination
-
                     movesBitboard = movesBitboard and destinationMask.inv()
-
                     val encoding = if ((capturesMoves and destinationMask) == 0UL) 0 else 4
                     moves.add(newMove(square, destination, piece, encoding))
                 }
@@ -338,10 +319,8 @@ fun ULong.reverse() = java.lang.Long.reverse(this.toLong()).toULong()
 
 fun bitscanForward(input: ULong): Int {
     val bb = input xor (input - 1U)
-    val folded = (bb xor (bb shr 32)).toUInt()
-    return lsb64Table[(folded * 0x78291ACFU shr 26).toInt()]
+    return lsb64Table[((bb xor (bb shr 32)).toUInt() * 0x78291ACFU shr 26).toInt()]
 }
 
-fun newMove(from: Int, to: Int, piece: Int, encoding: Int): Int {
-    return (from and MASK_FROM) or ((to and MASK_FROM) shl 6) or ((piece and 0xF) shl 12) or ((encoding and 0xF) shl 16)
-}
+fun newMove(from: Int, to: Int, piece: Int, encoding: Int) =
+    (from and MASK_FROM) or ((to and MASK_FROM) shl 6) or ((piece and 0xF) shl 12) or ((encoding and 0xF) shl 16)
