@@ -1,6 +1,7 @@
 package `in`.kyle.chess.debug
 
 import `in`.kyle.chess.ChessBoard
+import `in`.kyle.chess.bitscanForward
 
 object Fen {
 
@@ -55,17 +56,21 @@ object Fen {
         }
 
         val enPassant =
-            if (board.enPassant == 0) "-" else MoveUtils.getChessNotation(board.enPassant)
+            if (board.enPassant == 0L) "-" else MoveUtils.getChessNotation(bitscanForward(board.enPassant))
 
-        return "$pieces $color $castlingStr $enPassant ${board.halfMoveClock} ${board.fullMoveNumber}"
+        return "$pieces $color $castlingStr $enPassant ${board.hmc} ${board.fullMoveNumber}"
     }
 
     fun toBoard(fen: String): ChessBoard {
+        val parts = fen.split(" ")
         val board = ChessBoard()
+
+        board.hmc = parts[4].toInt()
+        board.fullMoveNumber = parts[5].toInt()
+        board.enPassant = if (parts[3] == "-") 0 else (1L shl MoveUtils.getSquare(parts[3]))
 
         var i = 7
         var j = 0
-        val parts = fen.split(" ")
 
         for (c in parts[0]) {
             if (c == '/') {
@@ -95,11 +100,6 @@ object Fen {
             if (castling.contains("q")) bits += 8
             bits
         }
-
-        board.enPassant = if (parts[3] == "-") 0 else MoveUtils.getSquare(parts[3])
-
-        board.halfMoveClock = parts[4].toInt()
-        board.fullMoveNumber = parts[5].toInt()
         return board
     }
 }

@@ -2,13 +2,14 @@ package `in`.kyle.chess
 
 import `in`.kyle.chess.bitboard.bitboard
 import `in`.kyle.chess.bitboard.shouldBeBitboard
-import `in`.kyle.chess.model.*
-import `in`.kyle.chess.extensions.set
-import `in`.kyle.chess.reference.ReferenceBoard
 import `in`.kyle.chess.debug.Fen
 import `in`.kyle.chess.debug.Lan
 import `in`.kyle.chess.debug.PrettyBoard
+import `in`.kyle.chess.extensions.currentPieceOccupancies
+import `in`.kyle.chess.extensions.set
+import `in`.kyle.chess.model.*
 import `in`.kyle.chess.model.Square.*
+import `in`.kyle.chess.reference.ReferenceBoard
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.data.row
@@ -23,13 +24,19 @@ class TestMove : FreeSpec({
         referenceBoard.makeMove(move)
 
         var referenceOccupancies = referenceBoard.getOccupancies()
-        var boardOccupancies =
-            values()
-                .associateWith { if (board[it.index] == 0) null else Piece.fromBits(board[it.index]) }
+        var boardOccupancies = values().associateWith {
+            if (board[it.index] == 0) {
+                null
+            } else {
+                Piece.fromBits(board[it.index])
+            }
+        }
 
         withClue(lazy {
-            "My Board:\n${PrettyBoard.print(board)}\n" +
-                    "Reference Board:\n${PrettyBoard.print(Fen.toBoard(referenceBoard.getFen()))}"
+            buildString {
+                append("My Board:\n${PrettyBoard.print(board)}\n")
+                append("Reference Board:\n${PrettyBoard.print(Fen.toBoard(referenceBoard.getFen()))}")
+            }
         }) {
             boardOccupancies shouldBe referenceOccupancies
         }
@@ -38,13 +45,19 @@ class TestMove : FreeSpec({
         referenceBoard.undoMove()
 
         referenceOccupancies = referenceBoard.getOccupancies()
-        boardOccupancies =
-            values()
-                .associateWith { if (board[it.index] == 0) null else Piece.fromBits(board[it.index]) }
+        boardOccupancies = values().associateWith {
+            if (board[it.index] == 0) {
+                null
+            } else {
+                Piece.fromBits(board[it.index])
+            }
+        }
 
         withClue(lazy {
-            "My Board:\n${PrettyBoard.print(board)}\n" +
-                    "Reference Board:\n${PrettyBoard.print(Fen.toBoard(referenceBoard.getFen()))}"
+            buildString {
+                append("My Board:\n${PrettyBoard.print(board)}\n")
+                append("Reference Board:\n${PrettyBoard.print(Fen.toBoard(referenceBoard.getFen()))}")
+            }
         }) {
             boardOccupancies shouldBe referenceOccupancies
         }
@@ -173,9 +186,10 @@ class TestMove : FreeSpec({
                 encodings.map { encoding ->
                     val move = Move(from, to, PieceType.PAWN.getPiece(color), encoding)
                     withClue("Move: ${Lan.format(move.bits)}") {
-                        "${
-                            encoding.name.lowercase().replace("_", " ")
-                        } should work" { testBoardEquals(fen, move) }
+                        val encodingStr = encoding.name.lowercase().replace("_", " ")
+                        "$encodingStr should work" {
+                            testBoardEquals(fen, move)
+                        }
                     }
                 }
             }
@@ -189,12 +203,12 @@ class TestMove : FreeSpec({
         val move = Move(E1, E2, Piece.WHITE_KING)
         board.makeMove(move.bits)
 
-        board.pieceOccupancies[Piece.WHITE_KING.bits] shouldBeBitboard bitboard {
+        board.currentPieceOccupancies[Piece.WHITE_KING.bits] shouldBeBitboard bitboard {
             add(E2)
         }
 
         board.undoMove()
-        board.pieceOccupancies[Piece.WHITE_KING.bits] shouldBeBitboard bitboard {
+        board.currentPieceOccupancies[Piece.WHITE_KING.bits] shouldBeBitboard bitboard {
             add(E1)
         }
     }
@@ -204,7 +218,7 @@ class TestMove : FreeSpec({
         val board = Fen.toBoard("8/1p6/8/P7/8/8/8/8 b - - 0 1")
         board.makeMove(Move(B7, B5, Piece.BLACK_PAWN, Encoding.DOUBLE_PAWN_PUSH).bits)
 
-        board.enPassant shouldBe B6.index
+        board.enPassant shouldBe B6.bitboard
 
     }
 })

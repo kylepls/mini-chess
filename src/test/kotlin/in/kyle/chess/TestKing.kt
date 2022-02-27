@@ -3,12 +3,13 @@ package `in`.kyle.chess
 import `in`.kyle.chess.bitboard.toBitboardString
 import `in`.kyle.chess.model.Color
 import `in`.kyle.chess.model.Piece
-import `in`.kyle.chess.model.StandardMoves.kingsideCastleMoveBlack
-import `in`.kyle.chess.model.StandardMoves.kingsideCastleMoveWhite
-import `in`.kyle.chess.model.StandardMoves.queensideCastleMoveBlack
-import `in`.kyle.chess.model.StandardMoves.queensideCastleMoveWhite
 import `in`.kyle.chess.reference.testSameMovesAsReference
 import `in`.kyle.chess.debug.Fen
+import `in`.kyle.chess.extensions.getHumanCastleMoves
+import `in`.kyle.chess.model.Move.Companion.KINGSIDE_CASTLE_BLACK
+import `in`.kyle.chess.model.Move.Companion.KINGSIDE_CASTLE_WHITE
+import `in`.kyle.chess.model.Move.Companion.QUEENSIDE_CASTLE_BLACK
+import `in`.kyle.chess.model.Move.Companion.QUEENSIDE_CASTLE_WHITE
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -51,61 +52,61 @@ class TestKing : StringSpec({
 
     "white can castle kingside" {
         val board = Fen.toBoard("8/1k6/8/8/8/8/8/4K2R w K - 0 1")
-        val moves = board.getCastleMoves(board.getAttackedSquares(1))
-        moves shouldBe listOf(kingsideCastleMoveWhite.bits)
+        val moves = board.getHumanCastleMoves(board.getAttackedSquares(1))
+        moves shouldBe listOf(KINGSIDE_CASTLE_WHITE)
     }
 
     "white can castle queenside" {
         val board = Fen.toBoard("8/8/8/8/8/8/8/R3K3 w Q - 0 1")
-        val moves = board.getCastleMoves(board.getAttackedSquares(1))
-        moves shouldBe listOf(queensideCastleMoveWhite.bits)
+        val moves = board.getHumanCastleMoves(board.getAttackedSquares(1))
+        moves shouldBe listOf(QUEENSIDE_CASTLE_WHITE)
     }
 
     "white cannot castle queenside obstructed" {
         val board = Fen.toBoard("8/8/8/8/8/8/8/RB2K3 w Q - 0 1")
-        val moves = board.getCastleMoves(board.getAttackedSquares(1))
+        val moves = board.getHumanCastleMoves(board.getAttackedSquares(1))
         moves shouldBe emptyList()
     }
 
     "white cannot castle queenside" {
         val board = Fen.toBoard("8/8/8/8/8/8/8/R3K3 w - - 0 1")
-        val moves = board.getCastleMoves(board.getAttackedSquares(1))
+        val moves = board.getHumanCastleMoves(board.getAttackedSquares(1))
         moves shouldBe emptyList()
     }
 
     "white cannot castle kingside" {
         val board = Fen.toBoard("8/8/8/8/8/8/8/4K2R w - - 0 1")
-        val moves = board.getCastleMoves(board.getAttackedSquares(1))
+        val moves = board.getHumanCastleMoves(board.getAttackedSquares(1))
         moves shouldBe emptyList()
     }
 
     "black can castle kingside" {
         val board = Fen.toBoard("4k2r/8/8/8/8/8/8/8 b k - 0 1")
-        val moves = board.getCastleMoves(board.getAttackedSquares(0))
-        moves shouldBe listOf(kingsideCastleMoveBlack.bits)
+        val moves = board.getHumanCastleMoves(board.getAttackedSquares(0))
+        moves shouldBe listOf(KINGSIDE_CASTLE_BLACK)
     }
 
     "black can castle queenside" {
         val board = Fen.toBoard("r3k3/8/8/8/8/8/8/8 b q - 0 1")
-        val moves = board.getCastleMoves(board.getAttackedSquares(0))
-        moves shouldBe listOf(queensideCastleMoveBlack.bits)
+        val moves = board.getHumanCastleMoves(board.getAttackedSquares(0))
+        moves shouldBe listOf(QUEENSIDE_CASTLE_BLACK)
     }
 
     "black cannot castle queenside obstructed" {
         val board = Fen.toBoard("rb2k3/8/8/8/8/8/8/8 b q - 0 1")
-        val moves = board.getCastleMoves(board.getAttackedSquares(0))
+        val moves = board.getHumanCastleMoves(board.getAttackedSquares(0))
         moves shouldBe emptyList()
     }
 
     "black cannot castle queenside" {
         val board = Fen.toBoard("r3k3/8/8/8/8/8/8/8 b - - 0 1")
-        val moves = board.getCastleMoves(board.getAttackedSquares(0))
+        val moves = board.getHumanCastleMoves(board.getAttackedSquares(0))
         moves shouldBe emptyList()
     }
 
     "black cannot castle kingside" {
         val board = Fen.toBoard("4k2r/8/8/8/8/8/8/8 b - - 0 1")
-        val moves = board.getCastleMoves(board.getAttackedSquares(0))
+        val moves = board.getHumanCastleMoves(board.getAttackedSquares(0))
         moves shouldBe emptyList()
     }
 

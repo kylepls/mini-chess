@@ -16,13 +16,13 @@ data class Move(val bits: Int) {
         get() = Square.get(bits and MASK_FROM)
 
     val to: Square
-        get() = Square.get((bits and MASK_TO) shr 6)
+        get() = Square.get((bits and MASK_TO) ushr 6)
 
     val piece: Piece
-        get() = Piece.fromBits((bits and MASK_PIECE) shr 12)
+        get() = Piece.fromBits((bits and MASK_PIECE) ushr 12)
 
     val encoding: Encoding
-        get() = Encoding.fromBits((bits and MASK_ENCODING) shr 16)
+        get() = Encoding.fromBits((bits and MASK_ENCODING) ushr 16)
 
     val color: Color
         get() = piece.color
@@ -65,8 +65,23 @@ data class Move(val bits: Int) {
             this.toString()
         }
     }
+
+    companion object {
+
+        val KINGSIDE_CASTLE_WHITE =
+            Move(Square.E1, Square.G1, Piece.WHITE_KING, Encoding.KING_CASTLE)
+        val QUEENSIDE_CASTLE_WHITE =
+            Move(Square.E1, Square.C1, Piece.WHITE_KING, Encoding.QUEEN_CASTLE)
+        val KINGSIDE_CASTLE_BLACK =
+            Move(Square.E8, Square.G8, Piece.BLACK_KING, Encoding.KING_CASTLE)
+        val QUEENSIDE_CASTLE_BLACK =
+            Move(Square.E8, Square.C8, Piece.BLACK_KING, Encoding.QUEEN_CASTLE)
+
+    }
 }
 
 fun ChessBoard.getHumanMoves(): List<Move> {
-    return getMoves().map { Move(it) }
+    val moves = mutableListOf<Move>()
+    this.getMoves{ moveBits: Int -> moves.add(Move(moveBits)) }
+    return moves
 }

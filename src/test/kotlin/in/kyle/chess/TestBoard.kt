@@ -4,19 +4,18 @@ import `in`.kyle.chess.bitboard.bitboard
 import `in`.kyle.chess.bitboard.shouldBeBitboard
 import `in`.kyle.chess.bitboard.toBitboardString
 import `in`.kyle.chess.debug.PrettyBoard
-import `in`.kyle.chess.extensions.set
+import `in`.kyle.chess.extensions.*
 import `in`.kyle.chess.model.Color
-import `in`.kyle.chess.model.Move
 import `in`.kyle.chess.model.Piece
 import `in`.kyle.chess.model.Square
-import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 
 class TestBoard : FreeSpec({
     fun withBoardClue(board: ChessBoard, thunk: () -> Any) = withClue(lazy {
-        val colorBoards = Color.values().map { board.colorOccupancy[it.bits].toBitboardString() }
+        val colorBoards =
+            Color.values().map { board.currentColorOccupancy[it.bits].toBitboardString() }
         """
             Board:
             {board}
@@ -44,7 +43,7 @@ class TestBoard : FreeSpec({
 
                         "board should be same" {
                             withBoardClue(board) {
-                                board.board shouldBe IntArray(64) { 0 }.apply {
+                                board.currentBoard shouldBe IntArray(64) { 0 }.apply {
                                     set(square.index, piece.bits)
                                 }
                             }
@@ -52,7 +51,7 @@ class TestBoard : FreeSpec({
 
                         "occupancy should be same" {
                             withBoardClue(board) {
-                                board.occupancy shouldBeBitboard pieceBitboard
+                                board.currentOccupancy shouldBeBitboard pieceBitboard
                             }
                         }
 
@@ -60,7 +59,7 @@ class TestBoard : FreeSpec({
                             val expected = if (color == piece.color) pieceBitboard else bitboard { }
                             "colorOccupancy should be same for $color" {
                                 withBoardClue(board) {
-                                    board.colorOccupancy[color.bits] shouldBeBitboard expected
+                                    board.currentColorOccupancy[color.bits] shouldBeBitboard expected
                                 }
                             }
                         }
@@ -78,7 +77,7 @@ class TestBoard : FreeSpec({
                             val expected = if (piece == otherPiece) pieceBitboard else bitboard {}
                             "pieceOccupancies should be same for $otherPiece" {
                                 withBoardClue(board) {
-                                    board.pieceOccupancies[otherPiece.bits] shouldBeBitboard expected
+                                    board.currentPieceOccupancies[otherPiece.bits] shouldBeBitboard expected
                                 }
                             }
                         }
@@ -99,20 +98,20 @@ class TestBoard : FreeSpec({
 
                         "board should be same" {
                             withBoardClue(board) {
-                                board.board shouldBe IntArray(64) { 0 }
+                                board.currentBoard shouldBe IntArray(64) { 0 }
                             }
                         }
 
                         "occupancy should be same" {
                             withBoardClue(board) {
-                                board.occupancy shouldBeBitboard 0UL
+                                board.currentOccupancy shouldBeBitboard 0UL.toLong()
                             }
                         }
 
                         Color.values().map { color ->
                             "colorOccupancy should be same for $color" {
                                 withBoardClue(board) {
-                                    board.colorOccupancy[color.bits] shouldBeBitboard 0UL
+                                    board.currentColorOccupancy[color.bits] shouldBeBitboard 0UL.toLong()
                                 }
                             }
                         }
@@ -126,7 +125,7 @@ class TestBoard : FreeSpec({
                         Piece.values().map { otherPiece ->
                             "pieceOccupancies should be same for $otherPiece" {
                                 withBoardClue(board) {
-                                    board.pieceOccupancies[otherPiece.bits] shouldBeBitboard 0UL
+                                    board.currentPieceOccupancies[otherPiece.bits] shouldBeBitboard 0UL.toLong()
                                 }
                             }
                         }
@@ -142,7 +141,7 @@ class TestBoard : FreeSpec({
 
         board[Square.A1] = null
 
-        board.pieceOccupancies[Piece.WHITE_KING.bits] shouldBeBitboard 0UL
+        board.currentPieceOccupancies[Piece.WHITE_KING.bits] shouldBeBitboard 0UL.toLong()
     }
 
     "can make an undo a move" {

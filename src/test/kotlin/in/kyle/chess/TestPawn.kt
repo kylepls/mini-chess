@@ -5,13 +5,14 @@ import `in`.kyle.chess.bitboard.shouldBeBitboard
 import `in`.kyle.chess.model.Square
 import `in`.kyle.chess.reference.testSameMovesAsReference
 import `in`.kyle.chess.debug.Fen
+import `in`.kyle.chess.model.Color
 import io.kotest.core.spec.style.StringSpec
 
 class TestPawn : StringSpec({
 
     "black - test single pawn attack mask" {
         val board = Fen.toBoard("8/8/8/4p3/8/8/8/8 w - - 0 1")
-        val attacks = board.bPawnAttacks()
+        val attacks = board.getPawnAttacks(Color.BLACK.bits)
 
         val expected = bitboard {
             add(Square.D4, Square.F4)
@@ -22,7 +23,7 @@ class TestPawn : StringSpec({
 
     "black - test single pawn attack mask in right corner" {
         val board = Fen.toBoard("7p/8/8/8/8/8/8/8 w - - 0 1")
-        val attacks = board.bPawnAttacks()
+        val attacks = board.getPawnAttacks(Color.BLACK.bits)
 
         val expected = bitboard {
             add(Square.G7)
@@ -33,7 +34,7 @@ class TestPawn : StringSpec({
 
     "black - test single pawn attack mask in left corner" {
         val board = Fen.toBoard("p7/8/8/8/8/8/8/8 w - - 0 1")
-        val attacks = board.bPawnAttacks()
+        val attacks = board.getPawnAttacks(Color.BLACK.bits)
 
         val expected = bitboard {
             add(Square.B7)
@@ -44,7 +45,7 @@ class TestPawn : StringSpec({
 
     "white - test single pawn attack mask" {
         val board = Fen.toBoard("8/8/8/8/8/2P5/8/8 w - - 0 1")
-        val attacks = board.wPawnAttacks()
+        val attacks = board.getPawnAttacks(Color.WHITE.bits)
 
         val expected = bitboard {
             add(Square.B4, Square.D4)
@@ -55,7 +56,7 @@ class TestPawn : StringSpec({
 
     "white - test single pawn attack mask in right corner" {
         val board = Fen.toBoard("8/8/8/8/8/8/8/7P w - - 0 1")
-        val attacks = board.wPawnAttacks()
+        val attacks = board.getPawnAttacks(Color.WHITE.bits)
 
         val expected = bitboard {
             add(Square.G2)
@@ -66,7 +67,7 @@ class TestPawn : StringSpec({
 
     "white - test single pawn attack mask in left corner" {
         val board = Fen.toBoard("8/8/8/8/8/8/8/P7 w - - 0 1")
-        val attacks = board.wPawnAttacks()
+        val attacks = board.getPawnAttacks(Color.WHITE.bits)
 
         val expected = bitboard {
             add(Square.B2)

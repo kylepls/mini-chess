@@ -13,6 +13,7 @@ import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.data.row
 
+@Suppress("UNUSED_PARAMETER")
 class TestAttacks : FreeSpec({
 
     fun pawnAttacks(square: Square, color: Color) = bitboard {
@@ -55,16 +56,24 @@ class TestAttacks : FreeSpec({
 
     Color.values().map { color ->
         "all attacks work for $color" - {
+            val pawnSquares =
+                Square.values().toList() - Square.A1.rankSquares - Square.A8.rankSquares
+            val everySquare = Square.values().toList()
             listOf(
-                row(PieceType.PAWN, ::pawnAttacks),
-                row(PieceType.KNIGHT, ::knightAttacks),
-                row(PieceType.BISHOP, ::bishopAttacks),
-                row(PieceType.ROOK, ::rookAttacks),
-                row(PieceType.QUEEN, ::queenAttacks),
-                row(PieceType.KING, ::kingAttacks)
-            ).map { (pieceType, attacksFunction) ->
-                "$pieceType has correct attacks on every square" - {
-                    Square.values().map { square ->
+                row(PieceType.PAWN, ::pawnAttacks, pawnSquares),
+                row(PieceType.KNIGHT, ::knightAttacks, everySquare),
+                row(PieceType.BISHOP, ::bishopAttacks, everySquare),
+                row(PieceType.ROOK, ::rookAttacks, everySquare),
+                row(PieceType.QUEEN, ::queenAttacks, everySquare),
+                row(PieceType.KING, ::kingAttacks, everySquare)
+            ).map { (pieceType, attacksFunction, squares) ->
+                val wording = if (squares == Square.values().toList()) {
+                    "every square"
+                } else {
+                    "${squares.size} squares"
+                }
+                "$pieceType has correct attacks on $wording" - {
+                    squares.map { square ->
                         "should have correct attacks on $square" {
                             val board = ChessBoard()
                             board[square] = pieceType.getPiece(color)

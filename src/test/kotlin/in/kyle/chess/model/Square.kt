@@ -107,6 +107,15 @@ enum class Square(val index: Int) {
     val southWest: Square
         get() = values()[index - 9]
 
+    val bitboard: Long
+        get() = 1L shl index
+
+    val rankSquares: List<Square>
+        get() = values().filter { it.rank == rank }
+
+    val fileSquares: List<Square>
+        get() = values().filter { it.file == file }
+
     fun relative(dx: Int, dy: Int): Square? {
         return if (file + dx !in (0..7) || rank + dy !in (0..7)) {
             null

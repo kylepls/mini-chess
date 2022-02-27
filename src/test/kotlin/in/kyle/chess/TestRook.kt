@@ -7,6 +7,7 @@ import `in`.kyle.chess.model.File
 import `in`.kyle.chess.model.Square
 import `in`.kyle.chess.reference.testSameMovesAsReference
 import `in`.kyle.chess.debug.Fen
+import `in`.kyle.chess.extensions.currentColorOccupancy
 import io.kotest.core.spec.style.StringSpec
 
 class TestRook : StringSpec({
@@ -31,7 +32,7 @@ class TestRook : StringSpec({
 
     "rook attacks can be blocked" {
         val board = Fen.toBoard("8/1R4P1/8/8/8/8/1P4R1/4K3 w - - 0 1")
-        val attacks = board.getSingleRookAttacks(Square.H1.index, board.colorOccupancy[0].inv())
+        val attacks = board.getSingleRookAttacks(Square.H1.index, board.currentColorOccupancy[0].inv())
 
         val expected = bitboard {
             add(Square.G1, Square.F1)

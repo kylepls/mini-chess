@@ -7,17 +7,20 @@ import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 
 object BitboardUtils {
-    fun printBitboard(long: ULong) {
+    fun printBitboard(long: Long) {
         println(long.toBitboardString())
+    }
+    fun toBitboardString(long: Long): String {
+        return long.toBitboardString()
     }
 }
 
-fun ULong.toBitboardString(): String {
+fun Long.toBitboardString(): String {
     var string = ""
     for (rank in 7 downTo 0) {
         string += "${rank + 1} "
         for (file in 0..7) {
-            string += if (this and (1UL shl (rank * 8 + file)) != 0UL) {
+            string += if (this and (1UL.toLong() shl (rank * 8 + file)) != 0UL.toLong()) {
                 "| X "
             } else {
                 "| . "
@@ -33,7 +36,7 @@ fun ULong.toBitboardString(): String {
     return string
 }
 
-infix fun ULong.shouldBeBitboard(other: ULong) {
+infix fun Long.shouldBeBitboard(other: Long) {
     withClue(lazy {
         "Bitboard should be\n${other.toBitboardString()}\nbut was\n${this.toBitboardString()}"
     }) {
@@ -42,6 +45,10 @@ infix fun ULong.shouldBeBitboard(other: ULong) {
 }
 
 data class BitboardConfiguration(val occupancies: MutableSet<Square>) {
+
+    fun add(vararg squares: Int) {
+        occupancies.addAll(squares.map { Square.get(it) })
+    }
 
     fun add(vararg square: Square) {
         occupancies.addAll(square)
@@ -75,21 +82,21 @@ data class BitboardConfiguration(val occupancies: MutableSet<Square>) {
         addSquares(Square.values().toList())
     }
 
-    fun toBitboard(): ULong {
-        var bitboard = 0UL
+    fun toBitboard(): Long {
+        var bitboard = 0L
         for (square in occupancies) {
-            bitboard = bitboard or (1UL shl square.index)
+            bitboard = bitboard or (1L shl square.index)
         }
         return bitboard
     }
 }
 
-fun bitboard(initializer: BitboardConfiguration.() -> Unit): ULong {
+fun bitboard(initializer: BitboardConfiguration.() -> Unit): Long {
     val configuration = BitboardConfiguration(mutableSetOf())
     configuration.initializer()
     return configuration.toBitboard()
 }
 
-fun ULong.shiftUpRanks(ranks: Int): ULong {
+fun Long.shiftUpRanks(ranks: Int): Long {
     return this shl (ranks * 8)
 }

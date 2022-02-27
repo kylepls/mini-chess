@@ -14,7 +14,7 @@ import io.kotest.matchers.shouldBe
 class TestMisc : FreeSpec({
     "rnbqkbnr/p1pppppp/8/1N6/8/8/PPPPPPPP/R1BQKBNR b KQkq - 3 3" {
         val board = Fen.toBoard("rnbqkbnr/p1pppppp/8/1N6/8/8/PPPPPPPP/R1BQKBNR b KQkq - 3 3")
-        board.getMoves().size shouldBe 20
+        board.getHumanMoves().size shouldBe 20
     }
 
     "idk" {

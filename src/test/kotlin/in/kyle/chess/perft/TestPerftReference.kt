@@ -9,13 +9,14 @@ import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import org.junit.jupiter.api.Disabled
 
 class TestPerftReference : FreeSpec({
 
     val inputs = (1..7).associateWith { Perft.PERFT_RESULTS[it] }
 
     inputs.entries.map { (depth, expected) ->
-        "perft($depth) should return ${expected.nodes}" {
+        "!perft($depth) should return ${expected.nodes}" {
             val board = Fen.toBoard(Fen.STARTING_POSITION)
             val reference = ReferenceBoard().apply { setPosition(Fen.STARTING_POSITION) }
 

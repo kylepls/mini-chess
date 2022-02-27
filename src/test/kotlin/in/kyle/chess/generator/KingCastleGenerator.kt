@@ -2,11 +2,9 @@ package `in`.kyle.chess.generator
 
 import `in`.kyle.chess.bitboard.bitboard
 import `in`.kyle.chess.bitboard.shiftUpRanks
+import `in`.kyle.chess.bitboard.toBitboardString
+import `in`.kyle.chess.model.Move
 import `in`.kyle.chess.model.Square
-import `in`.kyle.chess.model.StandardMoves.kingsideCastleMoveBlack
-import `in`.kyle.chess.model.StandardMoves.kingsideCastleMoveWhite
-import `in`.kyle.chess.model.StandardMoves.queensideCastleMoveBlack
-import `in`.kyle.chess.model.StandardMoves.queensideCastleMoveWhite
 
 fun main() {
     val kingsideCastle = bitboard {
@@ -23,10 +21,18 @@ fun main() {
         queensideCastle.shiftUpRanks(7)
     )
 
-    println("Safety Masks: " + safetyMasks.map { "0x${it.toString(16)}UL" })
+    println("Safety Masks: " + safetyMasks.map { "0x${it.toString(16)}L" })
 
-    val castleMoves = listOf(kingsideCastleMoveWhite, queensideCastleMoveWhite, kingsideCastleMoveBlack, queensideCastleMoveBlack)
-        .map { it.bits }
+    safetyMasks.forEach {
+        println(it.toBitboardString())
+    }
+
+    val castleMoves = listOf(
+        Move.KINGSIDE_CASTLE_WHITE,
+        Move.QUEENSIDE_CASTLE_WHITE,
+        Move.KINGSIDE_CASTLE_BLACK,
+        Move.QUEENSIDE_CASTLE_BLACK
+    ).map { it.bits }
     println("Castle Moves: $castleMoves")
 
     val kingsideCastleOccupancy = bitboard {
@@ -43,5 +49,9 @@ fun main() {
         queensideCastleOccupancy.shiftUpRanks(7)
     )
 
-    println("Occupancy Masks: " + occupancyMasks.map { "0x${it.toString(16)}UL" })
+    println("Occupancy Masks: " + occupancyMasks.map { "0x${it.toString(16)}L" })
+
+    occupancyMasks.forEach {
+        println(it.toBitboardString())
+    }
 }
