@@ -2,6 +2,8 @@ package `in`.kyle.chess.perft
 
 import `in`.kyle.chess.ChessBoard
 import `in`.kyle.chess.debug.Fen
+import `in`.kyle.chess.debug.Lan
+import `in`.kyle.chess.model.getHumanMoves
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.data.row
 import io.kotest.matchers.shouldBe
@@ -25,6 +27,9 @@ class TestPerft : FreeSpec({
 })
 
 fun perftRun(board: ChessBoard, depth: Int): Long {
+    if (depth == 0) {
+        return 1
+    }
     var nodes: Long = 0
     var consumer: (Int) -> Unit = {}
     consumer = { move: Int ->

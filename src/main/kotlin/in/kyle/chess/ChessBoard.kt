@@ -26,6 +26,7 @@ private val ONE_PAWN_ATTACKS = longArrayOf(0x2, 0x5, 0xA, 0x14, 0x28, 0x50, 0xA0
 private val P_FILES = arrayOf(NOT_A_FILE, NOT_H_FILE)
 private val CASTLE_MODES = intArrayOf(156036, 221316, 184252, 249532)
 
+@OptIn(ExperimentalUnsignedTypes::class)
 class ChessBoard {
     var hmc = 0
     var fullMoveNumber = 1
@@ -37,8 +38,6 @@ class ChessBoard {
     var empty = 0L
     var castling = 0
     var enPassant = 0L
-    val checkmask = Array(MAX_MOVES) { LongArray(2) }
-    val pinmask = Array(MAX_MOVES) { LongArray(2) }
     private val previousCastling = IntArray(MAX_MOVES)
     private val previousEnPassant = LongArray(MAX_MOVES)
     val moves = IntArray(MAX_MOVES) { 0 }
@@ -51,34 +50,32 @@ class ChessBoard {
         System.arraycopy(pieceOcc[hmc], 1, pieceOcc[hmc + 1], 1, 12)
         System.arraycopy(colorOccupancy[hmc], 0, colorOccupancy[hmc + 1], 0, 2)
         System.arraycopy(board[hmc], 0, board[hmc + 1], 0, 64)
-        System.arraycopy(checkmask[hmc], 0, checkmask[hmc + 1], 0, 2)
-        System.arraycopy(pinmask[hmc], 0, pinmask[hmc + 1], 0, 2)
         fullMoveNumber += ++hmc % 2
         val from = move and MASK_FROM
         val to = (move and MASK_TO) ushr 6
         enPassant = 0
         val piece = (move and MASK_PIECE) ushr 12
         when (val encoding = (move and MASK_ENCODING) ushr 16) {
-            0 -> move(from, to, piece, piece, color)
+            0 -> captureMove(from, to, piece, piece, color)
             1 -> {
                 enPassant = (1L shl (to + (from - to) / 2))
-                move(from, to, piece, piece, color)
+                captureMove(from, to, piece, piece, color)
             }
             2, 3 -> {
-                move(from, to, piece, piece, color)
+                captureMove(from, to, piece, piece, color)
                 val lookup = arrayOf(7, 5, 0, 3, 63, 61, 56, 59)
                 val i = (2 * encoding - 4) + (color * 4)
-                move(lookup[i], lookup[i + 1], 4 + color * 6, 4 + color * 6, color)
+                captureMove(lookup[i], lookup[i + 1], 4 + color * 6, 4 + color * 6, color)
             }
-            4 -> move(from, to, piece, piece, color)
+            4 -> captureMove(from, to, piece, piece, color)
             5 -> {
                 clear(to - (8 * ((color xor 1) * 2 - 1)), color xor 1)
-                move(from, to, piece, piece, color)
+                captureMove(from, to, piece, piece, color)
             }
             6, 7, 8, 9 ->
-                move(from, to, piece, ((encoding - 6) % 4 + 2) + (color * 6), color)
+                captureMove(from, to, piece, ((encoding - 6) % 4 + 2) + (color * 6), color)
             10, 11, 12, 13 -> {
-                move(from, to, piece, ((encoding - 6) % 4 + 2) + (color * 6), color)
+                captureMove(from, to, piece, ((encoding - 6) % 4 + 2) + (color * 6), color)
             }
         }
         color = color xor 1
@@ -105,12 +102,8 @@ class ChessBoard {
     }
 
     private fun O2ON(square: Int, m1: Long, m2: Long, friendlyOccupancyInv: Long): Long {
-        val m = m1 or m2
-//        val pieceBitboard = 1L shl square
-//        return (((((occupancy[hmc] and m1) - (2 * pieceBitboard)) xor (((occupancy[hmc] and m1).reverse() - (2 * pieceBitboard.reverse())).reverse())) and m1)
-//                or ((((occupancy[hmc] and m2) - (2 * pieceBitboard)) xor (((occupancy[hmc] and m2).reverse() - (2 * pieceBitboard.reverse())).reverse())) and m2)) and friendlyOccupancyInv
         val pieceBitboard = 1L shl square
-        return ((((occupancy[hmc] and m) - (2 * pieceBitboard)) xor (((occupancy[hmc] and m).reverse() - (2 * pieceBitboard.reverse())).reverse())) and m) and friendlyOccupancyInv
+        return (((((occupancy[hmc] and m1) - (2 * pieceBitboard)) xor (((occupancy[hmc] and m1).reverse() - (2 * pieceBitboard.reverse())).reverse())) and m1) or ((((occupancy[hmc] and m2) - (2 * pieceBitboard)) xor (((occupancy[hmc] and m2).reverse() - (2 * pieceBitboard.reverse())).reverse())) and m2)) and friendlyOccupancyInv
     }
 
     fun getKingAttacks(piece: Int): Long {
@@ -275,7 +268,7 @@ class ChessBoard {
         getCastleMoves(attackedSquares, consumer)
     }
 
-    fun move(from: Int, to: Int, fromPiece: Int, toPiece: Int, color: Int) {
+    fun captureMove(from: Int, to: Int, fromPiece: Int, toPiece: Int, color: Int) {
         val fromBB = (1L shl from)
         val toBB = (1L shl to)
         pieceOcc[hmc][this[to]] = pieceOcc[hmc][this[to]] xor toBB
@@ -314,7 +307,7 @@ class ChessBoard {
     operator fun get(square: Int) = board[hmc][square]
 }
 
-fun Long.reverse() = java.lang.Long.reverse(this)
+inline fun Long.reverse() = java.lang.Long.reverse(this)
 
 fun bitscanForward(input: Long): Int {
     val bb = input xor (input - 1)
@@ -324,4 +317,4 @@ fun bitscanForward(input: Long): Int {
 fun newMove(from: Int, to: Int, piece: Int, encoding: Int) =
     (from and MASK_FROM) or ((to and MASK_FROM) shl 6) or ((piece and 0xF) shl 12) or ((encoding and 0xF) shl 16)
 
-fun shift(input: Long, shift: Int) = (input shl shift) or (input ushr (64 - shift))
+inline fun shift(input: Long, shift: Int) = (input shl shift) or (input ushr (64 - shift))
