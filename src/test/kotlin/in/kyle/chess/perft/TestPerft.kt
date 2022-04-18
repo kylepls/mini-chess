@@ -15,7 +15,7 @@ import io.kotest.matchers.shouldBe
 
 
 const val WITH_REFERENCE = false
-val MAX_NODES = if (WITH_REFERENCE) 1000000 else 4000000 * 5 // 5 seconds on my machine
+val MAX_NODES = if (WITH_REFERENCE) 1000000 else 4000000000 * 5 // 5 seconds on my machine
 
 class TestPerft : FreeSpec({
     Perft.values().forEach { perft ->
@@ -36,6 +36,18 @@ class TestPerft : FreeSpec({
         }
     }
 })
+
+fun main() {
+    val perftTest = Perft.KIWI_PETE
+    val board = Fen.toBoard(perftTest.fen)
+    val start = System.currentTimeMillis()
+    (1..6).forEach {
+        perftRun(board, it)
+        val ms = System.currentTimeMillis() - start + 1
+        val mNodesPerSecond = (perftTest.nodes[it-1] / (ms/1000.0) / 1000000.0)
+        println("$it:\t ${ms}ms\t\t ${"%.6f".format(mNodesPerSecond)} M/s")
+    }
+}
 
 fun perftRun(board: ChessBoard, depth: Int): Long {
     val start = board.hmc
