@@ -2,7 +2,7 @@ package `in`.kyle.chess.extensions
 
 import `in`.kyle.chess.ChessBoard
 import `in`.kyle.chess.bitboard.bitboard
-import `in`.kyle.chess.debug.PrettyBoard
+import `in`.kyle.chess.util.PrettyBoard
 import `in`.kyle.chess.model.*
 
 val ChessBoard.currentBoard: IntArray

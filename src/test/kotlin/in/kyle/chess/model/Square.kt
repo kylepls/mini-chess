@@ -1,6 +1,6 @@
 package `in`.kyle.chess.model
 
-import `in`.kyle.chess.debug.MoveUtils
+import `in`.kyle.chess.util.MoveUtils
 import kotlin.math.abs
 import kotlin.math.absoluteValue
 

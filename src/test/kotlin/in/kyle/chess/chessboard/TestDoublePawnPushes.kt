@@ -3,7 +3,7 @@ package `in`.kyle.chess.chessboard
 import `in`.kyle.chess.ChessBoard
 import `in`.kyle.chess.bitboard.bitboard
 import `in`.kyle.chess.bitboard.shouldBeBitboard
-import `in`.kyle.chess.debug.Fen
+import `in`.kyle.chess.util.Fen
 import `in`.kyle.chess.extensions.set
 import `in`.kyle.chess.model.Color
 import `in`.kyle.chess.model.PieceType

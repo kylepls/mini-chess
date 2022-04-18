@@ -1,39 +1,51 @@
 package `in`.kyle.chess.perft
 
 import `in`.kyle.chess.ChessBoard
-import `in`.kyle.chess.debug.Fen
-import `in`.kyle.chess.debug.Lan
+import `in`.kyle.chess.model.Move
+import `in`.kyle.chess.model.castleRights
 import `in`.kyle.chess.model.getHumanMoves
+import `in`.kyle.chess.reference.ReferenceBoard
+import `in`.kyle.chess.util.Fen
+import `in`.kyle.chess.util.Lichess
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FreeSpec
-import io.kotest.data.row
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 
+
+const val WITH_REFERENCE = false
+val MAX_NODES = if (WITH_REFERENCE) 1000000 else 4000000 * 5 // 5 seconds on my machine
+
 class TestPerft : FreeSpec({
-    listOf(
-        row("Perft 1", 1, 20),
-        row("Perft 2", 2, 400),
-        row("Perft 3", 3, 8902),
-        row("Perft 4", 4, 197281),
-        row("Perft 5", 5, 4865609),
-        row("Perft 6", 6, 119060324),
-        row("Perft 7", 7, 3195901860L),
-    ).map { (description, depth, expected) ->
-        description {
-            val board = Fen.toBoard(Fen.STARTING_POSITION)
-            val actual = perftRun(board, depth)
-            actual shouldBe expected
+    Perft.values().forEach { perft ->
+        perft.name - {
+            perft.nodes.forEachIndexed { index, nodes ->
+                val depth = index + 1
+                "depth $depth=$nodes".config(enabled = nodes < MAX_NODES) - {
+                    val board = Fen.toBoard(perft.fen)
+                    val referenceBoard = ReferenceBoard().apply { setPosition(perft.fen) }
+                    val actual = if (WITH_REFERENCE) perftRunWithReference(
+                        board,
+                        referenceBoard,
+                        depth
+                    ) else perftRun(board, depth)
+                    actual shouldBe nodes
+                }
+            }
         }
     }
 })
 
 fun perftRun(board: ChessBoard, depth: Int): Long {
+    val start = board.hmc
     if (depth == 0) {
         return 1
     }
     var nodes: Long = 0
     var consumer: (Int) -> Unit = {}
     consumer = { move: Int ->
-        if (board.hmc < depth - 1) {
+        if ((board.hmc - start) < depth - 1) {
             board.makeMove(move)
             board.getMoves(consumer)
             board.undoMove()
@@ -42,5 +54,49 @@ fun perftRun(board: ChessBoard, depth: Int): Long {
         }
     }
     board.getMoves(consumer)
+    return nodes
+}
+
+fun perftRunWithReference(
+    board: ChessBoard,
+    reference: ReferenceBoard,
+    depth: Int,
+): Long {
+    if (depth == 0) {
+        return 1
+    }
+    var nodes: Long = 0
+
+    val humanMoves = board.getHumanMoves()
+    val moves = humanMoves.map { it.toString() }.sorted()
+    val referenceMoves = reference.getLegalMoves().sorted()
+
+    withClue(lazy {
+        """
+            $board
+            my board:  ${Lichess.analysisUrl(Fen.format(board))}
+            reference: ${Lichess.analysisUrl(reference.getFen())}
+            my moves: $moves
+            reference moves: $referenceMoves
+            moves made so far: ${
+            board.moves.slice(0..board.hmc).reversed().map { Move(it).toString() }
+        }
+            moves bits: ${board.moves.slice(0..board.hmc).reversed()}
+        """.trimIndent()
+    }) {
+        board.castleRights() shouldContainExactly reference.castleRights()
+        if (moves != referenceMoves) {
+            println("error")
+        }
+        moves shouldContainExactly referenceMoves
+    }
+
+    for (move in humanMoves) {
+        board.makeMove(move.bits)
+        reference.makeMove(move)
+        nodes += perftRunWithReference(board, reference, depth - 1)
+        reference.undoMove()
+        board.undoMove()
+    }
     return nodes
 }

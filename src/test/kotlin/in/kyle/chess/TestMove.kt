@@ -2,143 +2,98 @@ package `in`.kyle.chess
 
 import `in`.kyle.chess.bitboard.bitboard
 import `in`.kyle.chess.bitboard.shouldBeBitboard
-import `in`.kyle.chess.debug.Fen
-import `in`.kyle.chess.debug.Lan
-import `in`.kyle.chess.debug.PrettyBoard
 import `in`.kyle.chess.extensions.currentPieceOccupancies
 import `in`.kyle.chess.extensions.set
 import `in`.kyle.chess.model.*
 import `in`.kyle.chess.model.Square.*
 import `in`.kyle.chess.reference.ReferenceBoard
+import `in`.kyle.chess.util.Fen
+import `in`.kyle.chess.util.Lan
+import `in`.kyle.chess.util.PrettyBoard
+import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.data.row
+import io.kotest.matchers.maps.shouldContainExactly
 import io.kotest.matchers.shouldBe
 
 class TestMove : FreeSpec({
-    fun testBoardEquals(startingFen: String, move: Move) {
-        val board = Fen.toBoard(startingFen)
-        val referenceBoard = ReferenceBoard().apply { setPosition(startingFen) }
-
-        board.makeMove(move.bits)
-        referenceBoard.makeMove(move)
-
-        var referenceOccupancies = referenceBoard.getOccupancies()
-        var boardOccupancies = values().associateWith {
-            if (board[it.index] == 0) {
-                null
-            } else {
-                Piece.fromBits(board[it.index])
-            }
-        }
-
-        withClue(lazy {
-            buildString {
-                append("My Board:\n${PrettyBoard.print(board)}\n")
-                append("Reference Board:\n${PrettyBoard.print(Fen.toBoard(referenceBoard.getFen()))}")
-            }
-        }) {
-            boardOccupancies shouldBe referenceOccupancies
-        }
-
-        board.undoMove()
-        referenceBoard.undoMove()
-
-        referenceOccupancies = referenceBoard.getOccupancies()
-        boardOccupancies = values().associateWith {
-            if (board[it.index] == 0) {
-                null
-            } else {
-                Piece.fromBits(board[it.index])
-            }
-        }
-
-        withClue(lazy {
-            buildString {
-                append("My Board:\n${PrettyBoard.print(board)}\n")
-                append("Reference Board:\n${PrettyBoard.print(Fen.toBoard(referenceBoard.getFen()))}")
-            }
-        }) {
-            boardOccupancies shouldBe referenceOccupancies
-        }
-    }
-
     "test pawn single push" {
-        testBoardEquals("8/8/8/8/8/8/4P3/8 w - - 0 1", Move(E2, E3, Piece.WHITE_PAWN))
+        testMoveAgainstReference("8/8/8/8/8/8/4P3/8 w - - 0 1", Move(E2, E3, Piece.WHITE_PAWN))
     }
 
     "test double single push white" {
-        testBoardEquals(
+        testMoveAgainstReference(
             "8/8/8/8/8/8/4P3/8 w - - 0 1",
             Move(E2, E4, Piece.WHITE_PAWN, Encoding.DOUBLE_PAWN_PUSH)
         )
     }
 
     "test double pawn push black" {
-        testBoardEquals(
+        testMoveAgainstReference(
             "8/4p3/8/8/8/8/8/8 b - - 0 1",
             Move(E7, E5, Piece.BLACK_PAWN, Encoding.DOUBLE_PAWN_PUSH)
         )
     }
 
     "test pawn single capture" {
-        testBoardEquals(
+        testMoveAgainstReference(
             "8/8/8/8/8/8/4P3/8 w - - 0 1",
             Move(E2, F3, Piece.WHITE_PAWN, Encoding.CAPTURE)
         )
     }
 
     "test en passant black left" {
-        testBoardEquals(
+        testMoveAgainstReference(
             "8/1k6/8/8/4Pp2/8/1K6/8 b - e3 0 1",
             Move(F4, E3, Piece.BLACK_PAWN, Encoding.EN_PASSANT_CAPTURE)
         )
     }
 
     "test en passant black right" {
-        testBoardEquals(
+        testMoveAgainstReference(
             "8/1k6/8/8/3pP3/8/1K6/8 b - e3 0 1",
             Move(D4, E3, Piece.BLACK_PAWN, Encoding.EN_PASSANT_CAPTURE)
         )
     }
 
     "test en passant white left" {
-        testBoardEquals(
+        testMoveAgainstReference(
             "8/1k6/8/5pP1/8/8/1K6/8 w - f6 0 1",
             Move(G5, F6, Piece.WHITE_PAWN, Encoding.EN_PASSANT_CAPTURE)
         )
     }
 
     "test en passant white right" {
-        testBoardEquals(
+        testMoveAgainstReference(
             "8/1k6/8/4Pp2/8/8/1K6/8 w - f6 0 1",
             Move(E5, F6, Piece.WHITE_PAWN, Encoding.EN_PASSANT_CAPTURE)
         )
     }
 
     "test king castle white" {
-        testBoardEquals(
+        testMoveAgainstReference(
             "k7/8/8/8/8/8/8/4K2R w K - 0 1",
             Move(E1, G1, Piece.WHITE_KING, Encoding.KING_CASTLE)
         )
     }
 
     "test queen castle white" {
-        testBoardEquals(
+        testMoveAgainstReference(
             "7k/8/8/8/8/8/8/R3K3 w Q - 0 1",
             Move(E1, C1, Piece.WHITE_KING, Encoding.QUEEN_CASTLE)
         )
     }
 
     "test king castle black" {
-        testBoardEquals(
+        testMoveAgainstReference(
             "4k2r/8/8/8/8/8/8/4K3 b k - 0 1",
             Move(E8, G8, Piece.BLACK_KING, Encoding.KING_CASTLE)
         )
     }
 
     "test queen castle black" {
-        testBoardEquals(
+        testMoveAgainstReference(
             "r3k3/8/8/8/8/8/8/4K3 b q - 0 1",
             Move(E8, C8, Piece.BLACK_KING, Encoding.QUEEN_CASTLE)
         )
@@ -188,7 +143,7 @@ class TestMove : FreeSpec({
                     withClue("Move: ${Lan.format(move.bits)}") {
                         val encodingStr = encoding.name.lowercase().replace("_", " ")
                         "$encodingStr should work" {
-                            testBoardEquals(fen, move)
+                            testMoveAgainstReference(fen, move)
                         }
                     }
                 }
@@ -222,3 +177,59 @@ class TestMove : FreeSpec({
 
     }
 })
+
+fun testMoveAgainstReference(startingFen: String, move: Move) {
+    val board = Fen.toBoard(startingFen)
+    val referenceBoard = ReferenceBoard().apply { setPosition(startingFen) }
+
+    board.makeMove(move.bits)
+    referenceBoard.makeMove(move)
+
+    var referenceOccupancies = referenceBoard.getOccupancies()
+    var boardOccupancies = values().associateWith {
+        if (board[it.index] == 0) {
+            null
+        } else {
+            Piece.fromBits(board[it.index])
+        }
+    }
+
+    assertSoftly {
+        board.castleRights() shouldContainExactly referenceBoard.castleRights()
+    }
+
+    withClue(lazy {
+        buildString {
+            append("My Board:\n${PrettyBoard.print(board)}\n")
+            append("Reference Board:\n${PrettyBoard.print(Fen.toBoard(referenceBoard.getFen()))}")
+        }
+    }) {
+        boardOccupancies shouldBe referenceOccupancies
+    }
+
+    board.undoMove()
+    referenceBoard.undoMove()
+
+    referenceOccupancies = referenceBoard.getOccupancies()
+    boardOccupancies = values().associateWith {
+        if (board[it.index] == 0) {
+            null
+        } else {
+            Piece.fromBits(board[it.index])
+        }
+    }
+
+    assertSoftly {
+        board.castleRights() shouldContainExactly referenceBoard.castleRights()
+    }
+
+    withClue(lazy {
+        buildString {
+            append("My Board:\n${PrettyBoard.print(board)}\n")
+            append("Reference Board:\n${PrettyBoard.print(Fen.toBoard(referenceBoard.getFen()))}")
+        }
+    }) {
+        boardOccupancies shouldBe referenceOccupancies
+    }
+}
+

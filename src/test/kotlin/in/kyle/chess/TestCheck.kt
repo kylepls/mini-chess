@@ -1,9 +1,8 @@
 package `in`.kyle.chess
 
 import `in`.kyle.chess.bitboard.toBitboardString
-import `in`.kyle.chess.debug.Fen
+import `in`.kyle.chess.util.Fen
 import `in`.kyle.chess.extensions.pretty
-import `in`.kyle.chess.model.Color
 import `in`.kyle.chess.model.Piece
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FreeSpec

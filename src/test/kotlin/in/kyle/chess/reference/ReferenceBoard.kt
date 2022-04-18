@@ -1,14 +1,12 @@
 package `in`.kyle.chess.reference
 
 import `in`.kyle.chess.ChessBoard
-import `in`.kyle.chess.model.Piece
+import `in`.kyle.chess.model.CastleRights
 import `in`.kyle.chess.model.Color
 import `in`.kyle.chess.model.Move
-import `in`.kyle.chess.debug.Fen
-import com.github.bhlangonijr.chesslib.Board
-import com.github.bhlangonijr.chesslib.PieceType
-import com.github.bhlangonijr.chesslib.Side
-import com.github.bhlangonijr.chesslib.Square
+import `in`.kyle.chess.model.Piece
+import `in`.kyle.chess.util.Fen
+import com.github.bhlangonijr.chesslib.*
 
 class ReferenceBoard {
 
@@ -46,6 +44,17 @@ class ReferenceBoard {
 
     fun undoMove() {
         board.undoMove()
+    }
+
+    fun castleRights(): Map<Color, CastleRights> {
+        val referenceMapping = mapOf(
+            CastleRight.NONE to CastleRights.NONE,
+            CastleRight.KING_SIDE to CastleRights.KING_SIDE,
+            CastleRight.QUEEN_SIDE to CastleRights.QUEEN_SIDE,
+            CastleRight.KING_AND_QUEEN_SIDE to CastleRights.KING_SIDE_AND_QUEEN_SIDE
+        )
+        return board.castleRight.mapKeys { sideMappingInv[it.key]!! }
+            .mapValues { referenceMapping[it.value]!! }
     }
 
     fun makeMove(move: Move) {

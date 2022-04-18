@@ -1,4 +1,4 @@
-package `in`.kyle.chess.debug
+package `in`.kyle.chess.util
 
 object MoveUtils {
     fun getSquare(square: String): Int {

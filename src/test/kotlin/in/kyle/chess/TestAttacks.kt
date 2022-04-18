@@ -2,7 +2,7 @@ package `in`.kyle.chess
 
 import `in`.kyle.chess.bitboard.bitboard
 import `in`.kyle.chess.bitboard.shouldBeBitboard
-import `in`.kyle.chess.debug.PrettyBoard
+import `in`.kyle.chess.util.PrettyBoard
 import `in`.kyle.chess.extensions.getPieceAttacks
 import `in`.kyle.chess.extensions.set
 import `in`.kyle.chess.model.Color

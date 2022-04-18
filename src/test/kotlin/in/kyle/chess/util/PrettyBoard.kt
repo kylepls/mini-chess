@@ -1,4 +1,4 @@
-package `in`.kyle.chess.debug
+package `in`.kyle.chess.util
 
 import `in`.kyle.chess.ChessBoard
 

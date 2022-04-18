@@ -2,7 +2,7 @@ package `in`.kyle.chess.epd
 
 import `in`.kyle.chess.model.getHumanMoves
 import `in`.kyle.chess.reference.ReferenceBoard
-import `in`.kyle.chess.debug.Fen
+import `in`.kyle.chess.util.Fen
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldContainExactly
 

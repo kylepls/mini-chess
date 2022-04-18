@@ -6,7 +6,7 @@ import `in`.kyle.chess.model.Piece
 import `in`.kyle.chess.model.File
 import `in`.kyle.chess.model.Square
 import `in`.kyle.chess.reference.testSameMovesAsReference
-import `in`.kyle.chess.debug.Fen
+import `in`.kyle.chess.util.Fen
 import `in`.kyle.chess.extensions.currentColorOccupancy
 import io.kotest.core.spec.style.StringSpec
 

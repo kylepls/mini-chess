@@ -1,7 +1,7 @@
 package `in`.kyle.chess.model
 
 import `in`.kyle.chess.*
-import `in`.kyle.chess.debug.San
+import `in`.kyle.chess.util.San
 
 data class Move(val bits: Int) {
 

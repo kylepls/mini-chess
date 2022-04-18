@@ -1,11 +1,10 @@
 package `in`.kyle.chess
 
 import `in`.kyle.chess.bitboard.toBitboardString
-import `in`.kyle.chess.model.Color
-import `in`.kyle.chess.model.Piece
 import `in`.kyle.chess.reference.testSameMovesAsReference
-import `in`.kyle.chess.debug.Fen
+import `in`.kyle.chess.util.Fen
 import `in`.kyle.chess.extensions.getHumanCastleMoves
+import `in`.kyle.chess.model.*
 import `in`.kyle.chess.model.Move.Companion.KINGSIDE_CASTLE_BLACK
 import `in`.kyle.chess.model.Move.Companion.KINGSIDE_CASTLE_WHITE
 import `in`.kyle.chess.model.Move.Companion.QUEENSIDE_CASTLE_BLACK
@@ -140,5 +139,17 @@ class TestKing : StringSpec({
 
     "must promote to block check" {
         testSameMovesAsReference("r2K4/2P5/3k4/8/8/8/8/8 w - - 0 1")
+    }
+
+    "test white move castle revokes rights" {
+        testMoveAgainstReference("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",
+            Move(Square.E1, Square.G1, Piece.WHITE_KING, Encoding.KING_CASTLE)
+        )
+    }
+
+    "test black move castle revokes rights" {
+        testMoveAgainstReference("r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1",
+            Move(Square.E8, Square.G8, Piece.BLACK_KING, Encoding.KING_CASTLE)
+        )
     }
 })

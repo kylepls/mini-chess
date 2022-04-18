@@ -3,8 +3,8 @@ package `in`.kyle.chess.reference
 import `in`.kyle.chess.ChessBoard
 import `in`.kyle.chess.model.Move
 import `in`.kyle.chess.model.getHumanMoves
-import `in`.kyle.chess.debug.Fen
-import `in`.kyle.chess.debug.PrettyBoard
+import `in`.kyle.chess.util.Fen
+import `in`.kyle.chess.util.PrettyBoard
 import com.github.bhlangonijr.chesslib.Piece
 import com.github.bhlangonijr.chesslib.Square
 import io.kotest.assertions.withClue

@@ -1,4 +1,4 @@
-package `in`.kyle.chess.debug
+package `in`.kyle.chess.util
 
 import `in`.kyle.chess.ChessBoard
 import `in`.kyle.chess.bitscanForward
@@ -62,11 +62,14 @@ object Fen {
     }
 
     fun toBoard(fen: String): ChessBoard {
-        val parts = fen.split(" ")
+        val parts = fen.trim().split(" ")
         val board = ChessBoard()
 
-        board.hmc = parts[4].toInt()
-        board.fullMoveNumber = parts[5].toInt()
+        if (parts.size == 6) {
+            board.hmc = parts[4].toInt()
+            board.fullMoveNumber = parts[5].toInt()
+        }
+
         board.enPassant = if (parts[3] == "-") 0 else (1L shl MoveUtils.getSquare(parts[3]))
 
         var i = 7
