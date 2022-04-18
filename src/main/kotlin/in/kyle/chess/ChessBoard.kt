@@ -112,11 +112,9 @@ private val CASTLE_MODES=intArrayOf(156036,221316,184252,249532)
     val kingSafetyMasks=longArrayOf(0x70,0x1c,0x7000000000000000,0x1c00000000000000)
     val occupancyMask=longArrayOf(0x60,0xe,0x6000000000000000,0xe00000000000000)
     val castleTests=intArrayOf(1,2,4,8)
-    for(i in 0..1) {
-      if(((castleTests[color*2+i] and castling)!=0) and (attackedSquares and kingSafetyMasks[color*2+i]==0L) and (occupancy[hmc] and occupancyMask[color*2+i]==0L)) {
+    for(i in 0..1)
+      if(((castleTests[color*2+i] and castling)!=0) and (attackedSquares and kingSafetyMasks[color*2+i]==0L) and (occupancy[hmc] and occupancyMask[color*2+i]==0L))
         consumer(CASTLE_MODES[color*2+i])
-      }
-    }
   }
   fun pawnAttack(square:Int,color:Int)=shift(ONE_PAWN_ATTACKS[square%8],((square/8)*8)+8-16*color)
   fun getPawnAttacks(color:Int)=(shift(pieceOcc[hmc][1+color*6],-9*(color*2-1)) and P_FILES[color]) or (shift(pieceOcc[hmc][1+color*6],-7*(color*2-1)) and P_FILES[color xor 1])
@@ -139,25 +137,20 @@ private val CASTLE_MODES=intArrayOf(156036,221316,184252,249532)
       val square=bitscanForward(maskPawns)
       val pieceMask=(1L shl square)
       maskPawns=maskPawns and pieceMask.inv()
-      if(maskDoublePush and pieceMask!=0L) {
+      if(maskDoublePush and pieceMask!=0L)
         moves.add(newMove(square,square+16-(32*color),1+6*color,1))
-      }
       if(maskSinglePush and pieceMask!=0L) {
         val to=square+8-(16*color)
-        if(to<8||to>55) {
-          moves.addAll((6..9).map {newMove(square,to,1+6*color,it)})
-        } else {
-          moves.add(newMove(square,to,1+6*color,0))
-        }
+        if(to<8||to>55) moves.addAll((6..9).map {newMove(square,to,1+6*color,it)})
+        else moves.add(newMove(square,to,1+6*color,0))
       }
       var pawnAttackMask=pawnAttack(square,color) and (opposingOccupancy or enPassant)
       while(pawnAttackMask!=0L) {
         val to=bitscanForward(pawnAttackMask)
         val toMask=1L shl to
         pawnAttackMask=pawnAttackMask and toMask.inv()
-        if(to<8||to>55) {
-          moves.addAll((10..13).map {newMove(square,to,1+6*color,it)})
-        } else {
+        if(to<8||to>55) moves.addAll((10..13).map {newMove(square,to,1+6*color,it)})
+        else {
           val encoding=if(toMask==enPassant) 5 else 4
           moves.add(newMove(square,to,1+6*color,encoding))
         }

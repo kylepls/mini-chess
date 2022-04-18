@@ -2,7 +2,7 @@
 
 > This project is a fully functional chess move generator with a focus on using as few lines of code as possible. Because of this, the code will be borderline unintelligible to anyone not familiar with bitboards or chess programming.
 
-I was able to pack this into 276 lines of Kotlin. This is viewable [here](/src/main/kotlin/in/kyle/chess/ChessBoard.kt).
+I was able to pack this into <300 lines of Kotlin. This is viewable [here](/src/main/kotlin/in/kyle/chess/ChessBoard.kt).
 
 ## What is a move generator?
 

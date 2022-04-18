@@ -15,7 +15,7 @@ import io.kotest.matchers.shouldBe
 
 
 const val WITH_REFERENCE = false
-val MAX_NODES = if (WITH_REFERENCE) 1000000 else 4000000000 * 5 // 5 seconds on my machine
+val MAX_NODES = if (WITH_REFERENCE) 1000000 else 4000000 * 5 // 5 seconds on my machine
 
 class TestPerft : FreeSpec({
     Perft.values().forEach { perft ->
